@@ -47,6 +47,8 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        self.running = False
+
         # 256 bytes of memory
         self.ram = [0] * 256
         # Create 8 registers, 1 byte each
@@ -149,9 +151,9 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        running = True
+        self.running = True
 
-        while running:
+        while self.running:
             command = self.ram_read(self.pc)
 
             if command == self.instruction['NOP']:
@@ -254,7 +256,7 @@ class CPU:
                     self.fl = 0b00000100
                 self.pc += 2
             elif command == self.instruction['HLT']:
-                running = False
+                self.running = False
             else:
                 print(f"Unknown instruction: {command}")
                 sys.exit(1)
