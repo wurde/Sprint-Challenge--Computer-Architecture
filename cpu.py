@@ -35,6 +35,7 @@ INC  = 0b01100101
 DEC  = 0b01100110
 ADD  = 0b10100000
 SUB  = 0b10100001
+MOD  = 0b10100100
 AND  = 0b10101000
 OR   = 0b10101010
 XOR  = 0b10101011
@@ -88,6 +89,7 @@ class CPU:
         self.branchtable[DEC]  = self.handle_dec
         self.branchtable[ADD]  = self.handle_add
         self.branchtable[SUB]  = self.handle_sub
+        self.branchtable[MOD]  = self.handle_mod
         self.branchtable[AND]  = self.handle_and
         self.branchtable[OR]   = self.handle_or
         self.branchtable[XOR]  = self.handle_xor
@@ -150,6 +152,12 @@ class CPU:
             self.reg[reg_a] = self.reg[reg_a] << self.reg[reg_b]
         elif op == SHR:
             self.reg[reg_a] = self.reg[reg_a] >> self.reg[reg_b]
+        elif op == MOD:
+            remainder = self.reg[reg_a] % self.reg[reg_b]
+            if remainder == 0:
+                self.handle_hlt()
+                raise Exception("Remainder is 0")
+            self.reg[reg_a] = remainder
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -294,6 +302,12 @@ class CPU:
         reg_a = self.ram_read(self.pc + 1)
         reg_b = self.ram_read(self.pc + 2)
         self.alu(SUB, reg_a, reg_b)
+        self.pc += 2
+
+    def handle_mod(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+        self.alu(MOD, reg_a, reg_b)
         self.pc += 2
 
     def handle_and(self):
