@@ -137,8 +137,8 @@ class CPU:
                 next
             elif command == self.instruction['LDI']:
                 reg_a = self.ram_read(self.pc + 1)
-                reg_b = self.ram_read(self.pc + 2)
-                self.reg[reg_a] = reg_b
+                val = self.ram_read(self.pc + 2)
+                self.reg[reg_a] = val
                 self.pc += 2
             elif command == self.instruction['PRN']:
                 reg_a = self.ram_read(self.pc + 1)
