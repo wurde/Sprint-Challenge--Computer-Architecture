@@ -218,7 +218,7 @@ class CPU:
                 self.pc += 2
             elif command == self.instruction['JMP']:
                 reg_a = self.reg[self.ram_read(self.pc + 1)]
-                self.pc = reg_a
+                self.pc = reg_a - 1
             elif command == self.instruction['CMP']:
                 reg_a = self.reg[self.ram_read(self.pc + 1)]
                 reg_b = self.reg[self.ram_read(self.pc + 2)]
