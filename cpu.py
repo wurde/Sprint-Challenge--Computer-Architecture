@@ -86,6 +86,10 @@ class CPU:
         self.branchtable[DEC]  = self.handle_dec
         self.branchtable[ADD]  = self.handle_add
         self.branchtable[SUB]  = self.handle_sub
+        self.branchtable[AND]  = self.handle_and
+        self.branchtable[OR]   = self.handle_or
+        self.branchtable[XOR]  = self.handle_xor
+        self.branchtable[NOT]  = self.handle_not
         self.branchtable[MUL]  = self.handle_mul
         self.branchtable[CMP]  = self.handle_cmp
 
