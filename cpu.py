@@ -43,7 +43,6 @@ class CPU:
             "NOP":  0b00000000,
             "HLT":  0b00000001,
             "RET":  0b00010001,
-            "IRET": 0b00010011,
             "PUSH": 0b01000101,
             "POP":  0b01000110,
             "JEQ":  0b01010101,
@@ -207,12 +206,6 @@ class CPU:
                 register = self.ram_read(self.reg[SP])
                 self.reg[SP] += 1
                 self.pc = register - 1
-            elif command == self.instruction['IRET']:
-                # TODO 1. Registers R6-R0 are popped off the stack in that order.
-                # TODO 2. The `FL` register is popped off the stack.
-                # TODO 3. The return address is popped off the stack and stored in `PC`.
-                # TODO 4. Interrupts are re-enabled
-                raise Exception("Unimplemented operation IRET")
             elif command == self.instruction['LD']:
                 reg_a = self.ram_read(self.pc + 1)
                 reg_b = self.ram_read(self.pc + 2)
