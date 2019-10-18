@@ -62,28 +62,28 @@ class CPU:
         self.reg[IM] = 0
         self.reg[IS] = 0
         self.reg[SP] = 0xF4
-        self.instruction = {
-            "NOP":  0b00000000,
-            "HLT":  0b00000001,
-            "RET":  0b00010001,
-            "PUSH": 0b01000101,
-            "POP":  0b01000110,
-            "JEQ":  0b01010101,
-            "JNE":  0b01010110,
-            "PRA":  0b01001000,
-            "CALL": 0b01010000,
-            "JMP":  0b01010100,
-            "PRN":  0b01000111,
-            "INC":  0b01100101,
-            "DEC":  0b01100110,
-            "LD":   0b10000011,
-            "ST":   0b10000100,
-            "ADD":  0b10100000,
-            "SUB":  0b10100001,
-            "LDI":  0b10000010,
-            "CMP":  0b10100111,
-            "MUL":  0b10100010,
-        }
+
+        self.branchtable = {}
+        self.branchtable[NOP]  = self.handle_nop
+        self.branchtable[HLT]  = self.handle_hlt
+        self.branchtable[RET]  = self.handle_ret
+        self.branchtable[CALL] = self.handle_call
+        self.branchtable[JMP]  = self.handle_jmp
+        self.branchtable[JEQ]  = self.handle_jeq
+        self.branchtable[JNE]  = self.handle_jne
+        self.branchtable[PUSH] = self.handle_push
+        self.branchtable[POP]  = self.handle_pop
+        self.branchtable[PRA]  = self.handle_pra
+        self.branchtable[PRN]  = self.handle_prn
+        self.branchtable[LDI]  = self.handle_ldi
+        self.branchtable[LD]   = self.handle_ld
+        self.branchtable[ST]   = self.handle_st
+        self.branchtable[INC]  = self.handle_inc
+        self.branchtable[DEC]  = self.handle_dec
+        self.branchtable[ADD]  = self.handle_add
+        self.branchtable[SUB]  = self.handle_sub
+        self.branchtable[MUL]  = self.handle_mul
+        self.branchtable[CMP]  = self.handle_cmp
 
     def load(self, filename):
         """Load a program into memory."""
@@ -154,111 +154,12 @@ class CPU:
         self.running = True
 
         while self.running:
-            command = self.ram_read(self.pc)
+            self.ir = self.ram_read(self.pc)
 
-            if command == self.instruction['NOP']:
-                next
-            elif command == self.instruction['LDI']:
-                reg_a = self.ram_read(self.pc + 1)
-                val = self.ram_read(self.pc + 2)
-                self.reg[reg_a] = val
-                self.pc += 2
-            elif command == self.instruction['PRN']:
-                reg_a = self.ram_read(self.pc + 1)
-                print(self.reg[reg_a])
-                self.pc += 1
-            elif command == self.instruction['PRA']:
-                reg_a = self.ram_read(self.pc + 1)
-                print(chr(self.reg[reg_a]))
-                self.pc += 1
-            elif command == self.instruction['INC']:
-                reg_a = self.ram_read(self.pc + 1)
-                self.alu("INC", reg_a, None)
-                self.pc += 1
-            elif command == self.instruction['DEC']:
-                reg_a = self.ram_read(self.pc + 1)
-                self.alu("DEC", reg_a, None)
-                self.pc += 1
-            elif command == self.instruction['ADD']:
-                reg_a = self.ram_read(self.pc + 1)
-                reg_b = self.ram_read(self.pc + 2)
-                self.alu("ADD", reg_a, reg_b)
-                self.pc += 2
-            elif command == self.instruction['SUB']:
-                reg_a = self.ram_read(self.pc + 1)
-                reg_b = self.ram_read(self.pc + 2)
-                self.alu("SUB", reg_a, reg_b)
-                self.pc += 2
-            elif command == self.instruction['MUL']:
-                reg_a = self.ram_read(self.pc + 1)
-                reg_b = self.ram_read(self.pc + 2)
-                self.alu("MUL", reg_a, reg_b)
-                self.pc += 2
-            elif command == self.instruction['PUSH']:
-                register = self.ram_read(self.pc + 1)
-                val = self.reg[register]
-                self.reg[SP] -= 1
-                self.ram_write(self.reg[SP], val)
-                self.pc += 1
-            elif command == self.instruction['POP']:
-                register = self.ram_read(self.pc + 1)
-                val = self.ram_read(self.reg[SP])
-                self.reg[register] = val
-                self.reg[SP] += 1
-                self.pc += 1
-            elif command == self.instruction['CALL']:
-                reg_a = self.reg[self.ram_read(self.pc + 1)]
-                self.reg[SP] -= 1
-                self.ram_write(self.reg[SP], self.pc + 2)
-                self.pc = reg_a
-            elif command == self.instruction['JEQ']:
-                reg_a = self.reg[self.ram_read(self.pc + 1)]
-                if self.fl == 1:
-                    # If equal flag is true, jump to the address stored in register.
-                    self.pc = reg_a - 1
-                else:
-                    self.pc += 1
-            elif command == self.instruction['JNE']:
-                reg_a = self.reg[self.ram_read(self.pc + 1)]
-                if self.fl > 1:
-                    # If equal flag is false, jump to the address stored in register.
-                    self.pc = reg_a - 1
-                else:
-                    self.pc += 1
-            elif command == self.instruction['RET']:
-                register = self.ram_read(self.reg[SP])
-                self.reg[SP] += 1
-                self.pc = register - 1
-            elif command == self.instruction['LD']:
-                reg_a = self.ram_read(self.pc + 1)
-                reg_b = self.ram_read(self.pc + 2)
-                self.reg[reg_a] = reg_b
-                self.pc += 2
-            elif command == self.instruction['ST']:
-                reg_a = self.ram_read(self.pc + 1)
-                reg_b = self.reg[self.ram_read(self.pc + 2)]
-                self.reg[reg_a] = reg_b
-                self.pc += 2
-            elif command == self.instruction['JMP']:
-                reg_a = self.reg[self.ram_read(self.pc + 1)]
-                self.pc = reg_a - 1
-            elif command == self.instruction['CMP']:
-                reg_a = self.reg[self.ram_read(self.pc + 1)]
-                reg_b = self.reg[self.ram_read(self.pc + 2)]
-                if reg_a == reg_b:
-                    # If equal, set the Equal `E` flag to 1, otherwise 0.
-                    self.fl = 0b00000001
-                elif reg_a > reg_b:
-                    # If A greater than B, set Greater-than `G` flag to 1, otherwise 0.
-                    self.fl = 0b00000010
-                elif reg_a < reg_b:
-                    # If A less than B, set Less-than `L` flag to 1, otherwise 0.
-                    self.fl = 0b00000100
-                self.pc += 2
-            elif command == self.instruction['HLT']:
-                self.running = False
+            if self.ir in self.branchtable:
+                self.branchtable[self.ir]()
             else:
-                print(f"Unknown instruction: {command}")
+                print(f"Unknown instruction: {self.ir}")
                 sys.exit(1)
 
             if self.pc >= len(self.ram) - 1:
@@ -271,3 +172,124 @@ class CPU:
 
     def ram_write(self, pc, instruction):
         self.ram[pc] = instruction
+
+    def handle_nop(self):
+        next
+
+    def handle_hlt(self):
+        self.running = False
+
+    def handle_ret(self):
+        register = self.ram_read(self.reg[SP])
+        self.reg[SP] += 1
+        self.pc = register - 1
+
+    def handle_call(self):
+        reg_a = self.reg[self.ram_read(self.pc + 1)]
+        self.reg[SP] -= 1
+        self.ram_write(self.reg[SP], self.pc + 2)
+        self.pc = reg_a
+
+    def handle_jmp(self):
+        reg_a = self.reg[self.ram_read(self.pc + 1)]
+        self.pc = reg_a - 1
+
+    def handle_jeq(self):
+        reg_a = self.reg[self.ram_read(self.pc + 1)]
+        if self.fl == 1:
+            # If equal flag is true, jump to the address stored in register.
+            self.pc = reg_a - 1
+        else:
+            self.pc += 1
+
+    def handle_jne(self):
+        reg_a = self.reg[self.ram_read(self.pc + 1)]
+        if self.fl > 1:
+            # If equal flag is false, jump to the address stored in register.
+            self.pc = reg_a - 1
+        else:
+            self.pc += 1
+
+    def handle_push(self):
+        register = self.ram_read(self.pc + 1)
+        val = self.reg[register]
+        self.reg[SP] -= 1
+        self.ram_write(self.reg[SP], val)
+        self.pc += 1
+
+    def handle_pop(self):
+        register = self.ram_read(self.pc + 1)
+        val = self.ram_read(self.reg[SP])
+        self.reg[register] = val
+        self.reg[SP] += 1
+        self.pc += 1
+
+    def handle_pra(self):
+        reg_a = self.ram_read(self.pc + 1)
+        print(chr(self.reg[reg_a]))
+        self.pc += 1
+
+    def handle_prn(self):
+        reg_a = self.ram_read(self.pc + 1)
+        print(self.reg[reg_a])
+        self.pc += 1
+
+    def handle_ldi(self):
+        reg_a = self.ram_read(self.pc + 1)
+        val = self.ram_read(self.pc + 2)
+        self.reg[reg_a] = val
+        self.pc += 2
+
+    def handle_ld(self):
+        reg_a = self.ram_read(self.pc + 1)
+        val = self.ram_read(self.pc + 2)
+        self.reg[reg_a] = val
+        self.pc += 2
+
+    def handle_st(self):
+        reg_a = self.ram_read(self.pc + 1)
+        val = self.reg[self.ram_read(self.pc + 2)]
+        self.reg[reg_a] = val
+        self.pc += 2
+
+    def handle_inc(self):
+        reg_a = self.ram_read(self.pc + 1)
+        self.alu(INC, reg_a, None)
+        self.pc += 1
+
+    def handle_dec(self):
+        reg_a = self.ram_read(self.pc + 1)
+        self.alu(DEC, reg_a, None)
+        self.pc += 1
+
+    def handle_add(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+        self.alu(ADD, reg_a, reg_b)
+        self.pc += 2
+
+    def handle_sub(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+        self.alu(SUB, reg_a, reg_b)
+        self.pc += 2
+
+    def handle_mul(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+        self.alu(MUL, reg_a, reg_b)
+        self.pc += 2
+
+    def handle_cmp(self):
+        reg_a = self.reg[self.ram_read(self.pc + 1)]
+        reg_b = self.reg[self.ram_read(self.pc + 2)]
+        if reg_a == reg_b:
+            # If equal, set the Equal `E` flag to 1, otherwise 0.
+            self.fl = 0b00000001
+        elif reg_a > reg_b:
+            # If A greater than B, set Greater-than `G` flag to 1, otherwise 0.
+            self.fl = 0b00000010
+        elif reg_a < reg_b:
+            # If A less than B, set Less-than `L` flag to 1, otherwise 0.
+            self.fl = 0b00000100
+        self.pc += 2
