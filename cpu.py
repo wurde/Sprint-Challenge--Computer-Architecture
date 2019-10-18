@@ -39,6 +39,8 @@ AND  = 0b10101000
 OR   = 0b10101010
 XOR  = 0b10101011
 NOT  = 0b01101001
+SHL  = 0b10101100
+SHR  = 0b10101101
 CMP  = 0b10100111
 MUL  = 0b10100010
 
@@ -90,6 +92,8 @@ class CPU:
         self.branchtable[OR]   = self.handle_or
         self.branchtable[XOR]  = self.handle_xor
         self.branchtable[NOT]  = self.handle_not
+        self.branchtable[SHL]  = self.handle_shl
+        self.branchtable[SHR]  = self.handle_shr
         self.branchtable[MUL]  = self.handle_mul
         self.branchtable[CMP]  = self.handle_cmp
 
@@ -142,6 +146,10 @@ class CPU:
             self.reg[reg_a] = self.reg[reg_b] ^ self.reg[reg_b]
         elif op == NOT:
             self.reg[reg_a] = 0b11111111 - self.reg[reg_a]
+        elif op == SHL:
+            self.reg[reg_a] = self.reg[reg_a] << self.reg[reg_b]
+        elif op == SHR:
+            self.reg[reg_a] = self.reg[reg_a] >> self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -310,6 +318,18 @@ class CPU:
         reg_a = self.ram_read(self.pc + 1)
         reg_b = self.ram_read(self.pc + 2)
         self.alu(NOT, reg_a, reg_b)
+        self.pc += 2
+
+    def handle_shl(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+        self.alu(SHL, reg_a, reg_b)
+        self.pc += 2
+
+    def handle_shr(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+        self.alu(SHR, reg_a, reg_b)
         self.pc += 2
 
     def handle_mul(self):
