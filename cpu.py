@@ -46,6 +46,8 @@ class CPU:
             "IRET": 0b00010011,
             "PUSH": 0b01000101,
             "POP":  0b01000110,
+            "JEQ":  0b01010101,
+            "JNE":  0b01010110,
             "PRA":  0b01001000,
             "CALL": 0b01010000,
             "JMP":  0b01010100,
@@ -187,6 +189,20 @@ class CPU:
                 self.reg[SP] -= 1
                 self.ram_write(self.reg[SP], self.pc + 2)
                 self.pc = reg_a
+            elif command == self.instruction['JEQ']:
+                reg_a = self.reg[self.ram_read(self.pc + 1)]
+                if self.fl == 1:
+                    # If equal flag is true, jump to the address stored in register.
+                    self.pc = reg_a - 1
+                else:
+                    self.pc += 1
+            elif command == self.instruction['JNE']:
+                reg_a = self.reg[self.ram_read(self.pc + 1)]
+                if self.fl > 1:
+                    # If equal flag is false, jump to the address stored in register.
+                    self.pc = reg_a - 1
+                else:
+                    self.pc += 1
             elif command == self.instruction['RET']:
                 register = self.ram_read(self.reg[SP])
                 self.reg[SP] += 1
