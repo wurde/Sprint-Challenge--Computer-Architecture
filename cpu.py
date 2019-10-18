@@ -35,6 +35,10 @@ INC  = 0b01100101
 DEC  = 0b01100110
 ADD  = 0b10100000
 SUB  = 0b10100001
+AND  = 0b10101000
+OR   = 0b10101010
+XOR  = 0b10101011
+NOT  = 0b01101001
 CMP  = 0b10100111
 MUL  = 0b10100010
 
@@ -115,19 +119,25 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-        # bitwise-AND the result with 0xFF
-        # to keep values within 0 to 255.
 
-        if op == "ADD":
+        if op == ADD:
             self.reg[reg_a] += self.reg[reg_b]
-        elif op == "SUB":
+        elif op == SUB:
             self.reg[reg_a] -= self.reg[reg_b]
-        elif op == "MUL":
+        elif op == MUL:
             self.reg[reg_a] *= self.reg[reg_b]
-        elif op == "INC":
+        elif op == INC:
             self.reg[reg_a] += 1
-        elif op == "DEC":
+        elif op == DEC:
             self.reg[reg_a] -= 1
+        elif op == AND:
+            self.reg[reg_a] = self.reg[reg_b] & self.reg[reg_b]
+        elif op == OR:
+            self.reg[reg_a] = self.reg[reg_b] | self.reg[reg_b]
+        elif op == XOR:
+            self.reg[reg_a] = self.reg[reg_b] ^ self.reg[reg_b]
+        elif op == NOT:
+            self.reg[reg_a] = 0b11111111 - self.reg[reg_a]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -272,6 +282,30 @@ class CPU:
         reg_a = self.ram_read(self.pc + 1)
         reg_b = self.ram_read(self.pc + 2)
         self.alu(SUB, reg_a, reg_b)
+        self.pc += 2
+
+    def handle_and(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+        self.alu(AND, reg_a, reg_b)
+        self.pc += 2
+
+    def handle_or(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+        self.alu(OR, reg_a, reg_b)
+        self.pc += 2
+
+    def handle_xor(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+        self.alu(XOR, reg_a, reg_b)
+        self.pc += 2
+
+    def handle_not(self):
+        reg_a = self.ram_read(self.pc + 1)
+        reg_b = self.ram_read(self.pc + 2)
+        self.alu(NOT, reg_a, reg_b)
         self.pc += 2
 
     def handle_mul(self):
