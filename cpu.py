@@ -31,7 +31,11 @@ class CPU:
         # Create 8 registers, 1 byte each
         self.reg = [0] * 8
 
-        self.pc = 0
+        self.ir = 0   # Instruction Register
+        self.pc = 0   # Program Counter
+        self.mar = 0  # Memory Address Register
+        self.mdr = 0  # Memory Data Register
+        self.fl = 0   # Flags
         self.reg[IM] = 0
         self.reg[IS] = 0
         self.reg[SP] = 0xF4
@@ -53,6 +57,7 @@ class CPU:
             "ADD":  0b10100000,
             "SUB":  0b10100001,
             "LDI":  0b10000010,
+            "CMP":  0b10100111,
             "MUL":  0b10100010,
         }
 
@@ -205,6 +210,19 @@ class CPU:
             elif command == self.instruction['JMP']:
                 reg_a = self.reg[self.ram_read(self.pc + 1)]
                 self.pc = reg_a
+            elif command == self.instruction['CMP']:
+                reg_a = self.reg[self.ram_read(self.pc + 1)]
+                reg_b = self.reg[self.ram_read(self.pc + 2)]
+                if reg_a == reg_b:
+                    # If equal, set the Equal `E` flag to 1, otherwise 0.
+                    self.fl = 0b00000001
+                elif reg_a > reg_b:
+                    # If A greater than B, set Greater-than `G` flag to 1, otherwise 0.
+                    self.fl = 0b00000010
+                elif reg_a < reg_b:
+                    # If A less than B, set Less-than `L` flag to 1, otherwise 0.
+                    self.fl = 0b00000100
+                self.pc += 2
             elif command == self.instruction['HLT']:
                 running = False
             else:
